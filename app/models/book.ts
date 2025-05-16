@@ -6,10 +6,22 @@ export default class Book extends BaseModel {
   declare id: number | undefined
 
   @column()
-  declare title: string | undefined
+  declare category: string
 
   @column()
-  declare author: string | undefined
+  declare title: string
+
+  @column()
+  declare author: string
+
+  @column()
+  declare desc: string
+
+  @column()
+  declare content: string
+
+  @column()
+  declare image: string
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

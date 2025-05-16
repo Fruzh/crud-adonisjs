@@ -6,14 +6,18 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.string('title')
-      table.string('author')
-      table.timestamp('created_at', {useTz: true}).defaultTo(this.now())
-      table.timestamp('updated_at', {useTz: true}).defaultTo(this.now())
+      table.string('category').notNullable()
+      table.string('title').notNullable()
+      table.string('author').notNullable()
+      table.text('desc').notNullable()
+      table.text('content', 'longtext').notNullable()
+      table.string('image').notNullable()
+      table.timestamp('created_at', { useTz: true }).defaultTo(this.now())
+      table.timestamp('updated_at', { useTz: true }).defaultTo(this.now())
     })
   }
 
   async down() {
     this.schema.dropTable(this.tableName)
   }
-} 
+}

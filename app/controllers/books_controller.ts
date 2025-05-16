@@ -1,4 +1,3 @@
-// app/controllers/books_controller.ts
 import type { HttpContext } from '@adonisjs/core/http'
 import Book from '#models/book'
 import { schema, rules } from '@adonisjs/validator'
@@ -14,8 +13,12 @@ export default class BooksController {
 
     public async store({ request, response }: HttpContext) {
         const bookSchema = schema.create({
+            category: schema.string({}, [rules.maxLength(100)]),
             title: schema.string({}, [rules.maxLength(255)]),
             author: schema.string({}, [rules.maxLength(255)]),
+            desc: schema.string({}, [rules.maxLength(500)]),
+            content: schema.string(),
+            image: schema.string({}, [rules.maxLength(255)]),
         })
 
         const data = await request.validate({ schema: bookSchema })
@@ -48,8 +51,12 @@ export default class BooksController {
         }
 
         const bookSchema = schema.create({
+            category: schema.string({}, [rules.maxLength(100)]),
             title: schema.string({}, [rules.maxLength(255)]),
             author: schema.string({}, [rules.maxLength(255)]),
+            desc: schema.string({}, [rules.maxLength(500)]),
+            content: schema.string(),
+            image: schema.string({}, [rules.maxLength(255)]),
         })
 
         const data = await request.validate({ schema: bookSchema })
