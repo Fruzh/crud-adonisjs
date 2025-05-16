@@ -1,4 +1,3 @@
-// app/models/student.ts
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
@@ -14,6 +13,21 @@ export default class Student extends BaseModel {
 
   @column()
   declare kelas: string
+
+  @column()
+  declare email: string
+
+  @column()
+  declare phone: string
+
+  @column()
+  declare address: string
+
+  @column.date()
+  declare dateOfBirth: DateTime
+
+  @column()
+  declare profilePicture: string
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

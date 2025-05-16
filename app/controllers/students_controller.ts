@@ -16,17 +16,37 @@ export default class StudentsController {
       name: schema.string({}, [rules.maxLength(255)]),
       nis: schema.string({}, [rules.maxLength(20)]),
       kelas: schema.string({}, [rules.maxLength(10)]),
+      email: schema.string({}, [rules.email(), rules.maxLength(255)]),
+      phone: schema.string({}, [rules.maxLength(20)]),
+      address: schema.string({}, [rules.maxLength(500)]),
+      dateOfBirth: schema.date(),
+      profilePicture: schema.string({}, [rules.maxLength(255)]),
     })
 
     const data = await request.validate({ schema: studentSchema })
 
     // Cek apakah NIS sudah ada
-    const existing = await Student.query().where('nis', data.nis).first()
-    if (existing) {
+    const existingNis = await Student.query().where('nis', data.nis).first()
+    if (existingNis) {
       return response.conflict({ message: 'NIS sudah digunakan' })
     }
 
-    const student = await Student.create(data)
+    // Cek apakah email sudah ada
+    const existingEmail = await Student.query().where('email', data.email).first()
+    if (existingEmail) {
+      return response.conflict({ message: 'Email sudah digunakan' })
+    }
+
+    const student = await Student.create({
+      name: data.name,
+      nis: data.nis,
+      kelas: data.kelas,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      dateOfBirth: data.dateOfBirth,
+      profilePicture: data.profilePicture,
+    })
 
     return response.created({
       message: 'Siswa berhasil ditambahkan',
@@ -56,11 +76,43 @@ export default class StudentsController {
       name: schema.string({}, [rules.maxLength(255)]),
       nis: schema.string({}, [rules.maxLength(20)]),
       kelas: schema.string({}, [rules.maxLength(10)]),
+      email: schema.string({}, [rules.email(), rules.maxLength(255)]),
+      phone: schema.string({}, [rules.maxLength(20)]),
+      address: schema.string({}, [rules.maxLength(500)]),
+      dateOfBirth: schema.date(),
+      profilePicture: schema.string({}, [rules.maxLength(255)]),
     })
 
     const data = await request.validate({ schema: studentSchema })
 
-    student.merge(data)
+    // Cek apakah NIS sudah digunakan oleh siswa lain
+    const existingNis = await Student.query()
+      .where('nis', data.nis)
+      .whereNot('id', params.id)
+      .first()
+    if (existingNis) {
+      return response.conflict({ message: 'NIS sudah digunakan' })
+    }
+
+    // Cek apakah email sudah digunakan oleh siswa lain
+    const existingEmail = await Student.query()
+      .where('email', data.email)
+      .whereNot('id', params.id)
+      .first()
+    if (existingEmail) {
+      return response.conflict({ message: 'Email sudah digunakan' })
+    }
+
+    student.merge({
+      name: data.name,
+      nis: data.nis,
+      kelas: data.kelas,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      dateOfBirth: data.dateOfBirth,
+      profilePicture: data.profilePicture,
+    })
     await student.save()
 
     return response.ok({
