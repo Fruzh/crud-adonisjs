@@ -25,13 +25,11 @@ export default class StudentsController {
 
     const data = await request.validate({ schema: studentSchema })
 
-    // Cek apakah NIS sudah ada
     const existingNis = await Student.query().where('nis', data.nis).first()
     if (existingNis) {
       return response.conflict({ message: 'NIS sudah digunakan' })
     }
 
-    // Cek apakah email sudah ada
     const existingEmail = await Student.query().where('email', data.email).first()
     if (existingEmail) {
       return response.conflict({ message: 'Email sudah digunakan' })
@@ -85,7 +83,6 @@ export default class StudentsController {
 
     const data = await request.validate({ schema: studentSchema })
 
-    // Cek apakah NIS sudah digunakan oleh siswa lain
     const existingNis = await Student.query()
       .where('nis', data.nis)
       .whereNot('id', params.id)
@@ -94,7 +91,6 @@ export default class StudentsController {
       return response.conflict({ message: 'NIS sudah digunakan' })
     }
 
-    // Cek apakah email sudah digunakan oleh siswa lain
     const existingEmail = await Student.query()
       .where('email', data.email)
       .whereNot('id', params.id)
