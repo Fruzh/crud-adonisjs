@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { DateTime } from 'luxon'
 import Student from '#models/student'
-import { schema, rules } from '@adonisjs/validator'
+import { createStudentValidator, updateStudentValidator, showStudentValidator, deleteStudentValidator } from '#validators/student'
 
 export default class StudentsController {
     public async index({ response }: HttpContext) {
@@ -12,39 +13,25 @@ export default class StudentsController {
     }
 
     public async store({ request, response }: HttpContext) {
-        const studentSchema = schema.create({
-            name: schema.string({}, [rules.maxLength(255)]),
-            nis: schema.string({}, [rules.maxLength(20)]),
-            kelas: schema.string({}, [rules.maxLength(10)]),
-            email: schema.string({}, [rules.email(), rules.maxLength(255)]),
-            phone: schema.string({}, [rules.maxLength(20)]),
-            address: schema.string({}, [rules.maxLength(500)]),
-            dateOfBirth: schema.date(),
-            profilePicture: schema.string({}, [rules.maxLength(255)]),
-        })
+        const payload = await request.validateUsing(createStudentValidator)
 
-        const data = await request.validate({ schema: studentSchema })
-
-        const existingNis = await Student.query().where('nis', data.nis).first()
+        const existingNis = await Student.query().where('nis', payload.nis).first()
         if (existingNis) {
             return response.conflict({ message: 'NIS sudah digunakan' })
         }
 
-        const existingEmail = await Student.query().where('email', data.email).first()
+        const existingEmail = await Student.query().where('email', payload.email).first()
         if (existingEmail) {
             return response.conflict({ message: 'Email sudah digunakan' })
         }
 
-        const student = await Student.create({
-            name: data.name,
-            nis: data.nis,
-            kelas: data.kelas,
-            email: data.email,
-            phone: data.phone,
-            address: data.address,
-            dateOfBirth: data.dateOfBirth,
-            profilePicture: data.profilePicture,
-        })
+        // Konversi dateOfBirth dari Date ke DateTime
+        const transformedPayload = {
+            ...payload,
+            dateOfBirth: DateTime.fromJSDate(payload.dateOfBirth),
+        }
+
+        const student = await Student.create(transformedPayload)
 
         return response.created({
             message: 'Siswa berhasil ditambahkan',
@@ -53,7 +40,9 @@ export default class StudentsController {
     }
 
     public async show({ params, response }: HttpContext) {
-        const student = await Student.find(params.id)
+        const { params: { id } } = await params.validateUsing(showStudentValidator)
+
+        const student = await Student.find(id)
         if (!student) {
             return response.notFound({ message: 'Siswa tidak ditemukan' })
         }
@@ -65,50 +54,41 @@ export default class StudentsController {
     }
 
     public async update({ params, request, response }: HttpContext) {
-        const student = await Student.find(params.id)
+        const { params: { id } } = await params.validateUsing(showStudentValidator)
+        const payload = await request.validateUsing(updateStudentValidator)
+
+        const student = await Student.find(id)
         if (!student) {
             return response.notFound({ message: 'Siswa tidak ditemukan' })
         }
 
-        const studentSchema = schema.create({
-            name: schema.string({}, [rules.maxLength(255)]),
-            nis: schema.string({}, [rules.maxLength(20)]),
-            kelas: schema.string({}, [rules.maxLength(10)]),
-            email: schema.string({}, [rules.email(), rules.maxLength(255)]),
-            phone: schema.string({}, [rules.maxLength(20)]),
-            address: schema.string({}, [rules.maxLength(500)]),
-            dateOfBirth: schema.date(),
-            profilePicture: schema.string({}, [rules.maxLength(255)]),
-        })
-
-        const data = await request.validate({ schema: studentSchema })
-
-        const existingNis = await Student.query()
-            .where('nis', data.nis)
-            .whereNot('id', params.id)
-            .first()
-        if (existingNis) {
-            return response.conflict({ message: 'NIS sudah digunakan' })
+        if (payload.nis) {
+            const existingNis = await Student.query()
+                .where('nis', payload.nis)
+                .whereNot('id', id)
+                .first()
+            if (existingNis) {
+                return response.conflict({ message: 'NIS sudah digunakan' })
+            }
         }
 
-        const existingEmail = await Student.query()
-            .where('email', data.email)
-            .whereNot('id', params.id)
-            .first()
-        if (existingEmail) {
-            return response.conflict({ message: 'Email sudah digunakan' })
+        if (payload.email) {
+            const existingEmail = await Student.query()
+                .where('email', payload.email)
+                .whereNot('id', id)
+                .first()
+            if (existingEmail) {
+                return response.conflict({ message: 'Email sudah digunakan' })
+            }
         }
 
-        student.merge({
-            name: data.name,
-            nis: data.nis,
-            kelas: data.kelas,
-            email: data.email,
-            phone: data.phone,
-            address: data.address,
-            dateOfBirth: data.dateOfBirth,
-            profilePicture: data.profilePicture,
-        })
+        // Konversi dateOfBirth dari Date ke DateTime jika ada
+        const transformedPayload = {
+            ...payload,
+            dateOfBirth: payload.dateOfBirth ? DateTime.fromJSDate(payload.dateOfBirth) : undefined,
+        }
+
+        student.merge(transformedPayload)
         await student.save()
 
         return response.ok({
@@ -118,7 +98,9 @@ export default class StudentsController {
     }
 
     public async destroy({ params, response }: HttpContext) {
-        const student = await Student.find(params.id)
+        const { params: { id } } = await params.validateUsing(deleteStudentValidator)
+
+        const student = await Student.find(id)
         if (!student) {
             return response.notFound({ message: 'Siswa tidak ditemukan' })
         }

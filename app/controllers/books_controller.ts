@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Book from '#models/book'
-import { createBookValidator, updateBookValidator, deleteBookValidator } from '#validators/create_book'
+import { createBookValidator, updateBookValidator, deleteBookValidator } from '#validators/book'
 
 export default class BooksController {
     public async index({ response }: HttpContext) {
