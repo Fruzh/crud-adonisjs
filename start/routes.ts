@@ -47,7 +47,7 @@ router.get('/', async () => {
           id: 'integer, auto increment',
           name: 'string, nama lengkap siswa',
           nis: 'string, Nomor Induk Siswa (unik)',
-          kelas: 'string, kelas siswa (contoh: XI RPL 2)',
+          kelas: 'string, kelas siswa (contoh: XI SIJA 2)',
           email: 'string, email siswa (unik)',
           phone: 'string, nomor telepon',
           address: 'text, alamat lengkap',
