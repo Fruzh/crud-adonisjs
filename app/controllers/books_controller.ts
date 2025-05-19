@@ -1,6 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Book from '#models/book'
-import { schema, rules } from '@adonisjs/validator'
 import { createBookValidator, updateBookValidator, deleteBookValidator } from '#validators/create_book'
 
 export default class BooksController {
@@ -42,18 +41,8 @@ export default class BooksController {
             return response.notFound({ message: 'Buku tidak ditemukan' })
         }
 
-        const bookSchema = schema.create({
-            category: schema.string({}, [rules.maxLength(100)]),
-            title: schema.string({}, [rules.maxLength(255)]),
-            author: schema.string({}, [rules.maxLength(255)]),
-            desc: schema.string({}, [rules.maxLength(500)]),
-            content: schema.string(),
-            image: schema.string({}, [rules.maxLength(255)]),
-        })
-
-        const data = await request.validate({ schema: bookSchema })
-
-        book.merge(data)
+        const payload = await request.validateUsing(updateBookValidator)
+        book.merge(payload)
         await book.save()
 
         return response.ok({
@@ -63,7 +52,9 @@ export default class BooksController {
     }
 
     public async destroy({ params, response }: HttpContext) {
-        const book = await Book.find(params.id)
+        const { params: { id } } = await params.validateUsing(deleteBookValidator)
+
+        const book = await Book.find(id)
         if (!book) {
             return response.notFound({ message: 'Buku tidak ditemukan' })
         }
