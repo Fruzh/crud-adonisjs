@@ -25,7 +25,6 @@ export default class StudentsController {
             return response.conflict({ message: 'Email sudah digunakan' })
         }
 
-        // Konversi dateOfBirth dari Date ke DateTime
         const transformedPayload = {
             ...payload,
             dateOfBirth: DateTime.fromJSDate(payload.dateOfBirth),
@@ -82,7 +81,6 @@ export default class StudentsController {
             }
         }
 
-        // Konversi dateOfBirth dari Date ke DateTime jika ada
         const transformedPayload = {
             ...payload,
             dateOfBirth: payload.dateOfBirth ? DateTime.fromJSDate(payload.dateOfBirth) : undefined,
